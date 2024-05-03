@@ -47,37 +47,45 @@ fn main() {
     // }
 
     // Receive array of numbers
-    let socket = match UnixDatagram::bind(SOCKET_PATH) {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("error binding socket: {}", e);
-            return;
-        }
-    };
-    let mut data_array: Vec<i32> = Vec::new();
+    // let socket = match UnixDatagram::bind(SOCKET_PATH) {
+    //     Ok(s) => s,
+    //     Err(e) => {
+    //         eprintln!("error binding socket: {}", e);
+    //         return;
+    //     }
+    // };
+    // let mut data_array: Vec<i32> = Vec::new();
+    //
+    // const MAX_NUMBERS: usize = 5;
+    // const BUFFER_SIZE: usize = 4 * MAX_NUMBERS;
+    // loop {
+    //     let mut buffer = vec![0; BUFFER_SIZE];
+    //     let _ = socket.recv(&mut buffer);
+    //
+    //     println!("buffer{:?}", buffer);
+    //
+    //     for i in (0..BUFFER_SIZE).step_by(4) {
+    //         let bytes: [u8; 4] = buffer[i..(i + 4)].try_into().unwrap();
+    //         let number = i32::from_ne_bytes(bytes);
+    //         data_array.push(number);
+    //         println!("data_array: {:?}", data_array);
+    //     }
+    //     let ptr = data_array.as_mut_ptr();
+    //     let n = data_array.len() as c_int;
+    //     println!("step1");
+    //     unsafe {
+    //         println!("step2");
+    //         let result = arrayProcessing(ptr, n);
+    //         for i in 0..n {
+    //             println!("step3");
+    //             println!("result: {}", *result.offset(i.try_into().unwrap()));
+    //         }
+    //     }
+    //     data_array.clear();
+    //     if let Err(e) = fs::remove_file(SOCKET_PATH) {
+    //         eprintln!("Error removing socket file: {}", e);
+    //     }
+    // }
 
-    const MAX_NUMBERS: usize = 5;
-    const BUFFER_SIZE: usize = 4 * MAX_NUMBERS;
-    loop {
-        let mut buffer = vec![0; BUFFER_SIZE];
-        let _ = socket.recv(&mut buffer);
-
-        println!("buffer{:?}", buffer);
-
-        let ptr = data_array.as_mut_ptr();
-        let n = data_array.len() as c_int;
-
-        if data_array.len() >= 5 {
-            unsafe {
-                let result = arrayProcessing(ptr, n);
-                for i in 0..n {
-                    println!("{}", *result.offset(i.try_into().unwrap()));
-                }
-            }
-
-            if let Err(e) = fs::remove_file(SOCKET_PATH) {
-                eprintln!("Error removing socket file: {}", e);
-            }
-        }
-    }
+    // Recieve one number to array
 }
