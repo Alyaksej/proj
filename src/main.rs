@@ -2,7 +2,8 @@ extern crate libc;
 use std::os::raw::{c_int, c_void};
 use std::os::unix::net::{UnixDatagram};
 use std::convert::TryInto;
-use std::fs;
+use std::{fs, vec};
+use std::os::unix::io::AsRawFd;
 
 extern {
     fn arrayProcessing (ptr_in: *mut c_int, n: c_int) -> *mut c_int;
@@ -138,12 +139,19 @@ fn main() {
     // }
 
     // Receive array to void pointer
-    if fs::metadata(SOCKET_PATH).is_ok() {
-        if let Err(e) = fs::remove_file(SOCKET_PATH) {
-            eprintln!("Error removing socket file: {}", e);
-            return;
-        }
-    }
+    // if fs::metadata(SOCKET_PATH).is_ok() {
+    //     if let Err(e) = fs::remove_file(SOCKET_PATH) {
+    //         eprintln!("Error removing socket file: {}", e);
+    //         return;
+    //     }
+    // }
+    // if fs::metadata(SOCKET_PATH).is_ok() {
+    //     if let Err(e) = fs::remove_file(SOCKET_PATH) {
+    //         eprintln!("Error removing socket file: {}", e);
+    //         return;
+    //     }
+    // }
+
     let socket = match UnixDatagram::bind(SOCKET_PATH) {
         Ok(s) => s,
         Err(e) => {
@@ -170,4 +178,6 @@ fn main() {
         }
         buffer.clear();
     }
+    let raw_fd = socket.as_raw_fd();
+    drop(socket);
 }
