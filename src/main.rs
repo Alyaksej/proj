@@ -1,5 +1,5 @@
 extern crate libc;
-use std::os::raw::c_int;
+use std::os::raw::{c_int, c_void};
 use std::os::unix::net::{UnixDatagram};
 use std::convert::TryInto;
 use std::fs;
@@ -7,48 +7,59 @@ use std::fs;
 extern {
     fn arrayProcessing (ptr_in: *mut c_int, n: c_int) -> *mut c_int;
 }
+
+extern {
+    fn byteToInt (ptr_in: *mut c_void, len: c_int) -> *mut c_int;
+}
+
 const SOCKET_PATH: &str = "/../../../../tmp/socket.sock";
 fn main() {
     // Receive on number
     // Create unix_socket
-    if fs::metadata(SOCKET_PATH).is_ok() {
-        if let Err(e) = fs::remove_file(SOCKET_PATH) {
-            eprintln!("Error removing socket file: {}", e);
-            return;
-        }
-    }
-    let socket = match UnixDatagram::bind(SOCKET_PATH) {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("error binding socket: {}", e);
-            return;
-        }
-    };
-    let mut data_array: Vec<i32> = Vec::new();
-
-    loop {
-        let mut buffer = [0u8; 4]; // for byte to i32
-        if let Err(e) = socket.recv_from(&mut buffer) {
-            eprintln!("Error receiving data: {}", e);
-            continue;
-        };
-        let received_data = i32::from_be_bytes(buffer);
-        data_array.push(received_data);
-
-        let ptr = data_array.as_mut_ptr();
-        let n = data_array.len() as c_int;
-        if data_array.len() >= 5 {
-            unsafe {
-                let result = arrayProcessing(ptr, n);
-                for i in 0..n {
-                    println!("{}", *result.offset(i.try_into().unwrap()));
-                }
-            }
-            data_array.clear();
-        }
-    }
+    // if fs::metadata(SOCKET_PATH).is_ok() {
+    //     if let Err(e) = fs::remove_file(SOCKET_PATH) {
+    //         eprintln!("Error removing socket file: {}", e);
+    //         return;
+    //     }
+    // }
+    // let socket = match UnixDatagram::bind(SOCKET_PATH) {
+    //     Ok(s) => s,
+    //     Err(e) => {
+    //         eprintln!("error binding socket: {}", e);
+    //         return;
+    //     }
+    // };
+    // let mut data_array: Vec<i32> = Vec::new();
+    //
+    // loop {
+    //     let mut buffer = [0u8; 4]; // for byte to i32
+    //     if let Err(e) = socket.recv_from(&mut buffer) {
+    //         eprintln!("Error receiving data: {}", e);
+    //         continue;
+    //     };
+    //     let received_data = i32::from_be_bytes(buffer);
+    //     data_array.push(received_data);
+    //
+    //     let ptr = data_array.as_mut_ptr();
+    //     let n = data_array.len() as c_int;
+    //     if data_array.len() >= 5 {
+    //         unsafe {
+    //             let result = arrayProcessing(ptr, n);
+    //             for i in 0..n {
+    //                 println!("{}", *result.offset(i.try_into().unwrap()));
+    //             }
+    //         }
+    //         data_array.clear();
+    //     }
+    // }
 
     // Receive array of numbers
+    // if fs::metadata(SOCKET_PATH).is_ok() {
+    //     if let Err(e) = fs::remove_file(SOCKET_PATH) {
+    //         eprintln!("Error removing socket file: {}", e);
+    //         return;
+    //     }
+    // }
     // let socket = match UnixDatagram::bind(SOCKET_PATH) {
     //     Ok(s) => s,
     //     Err(e) => {
@@ -84,9 +95,6 @@ fn main() {
     //         }
     //     }
     //     data_array.clear();
-    //     if let Err(e) = fs::remove_file(SOCKET_PATH) {
-    //         eprintln!("Error removing socket file: {}", e);
-    //     }
     // }
 
     // Receive one number to array
@@ -128,4 +136,38 @@ fn main() {
     //         eprintln!("Error removing socket file: {}", e);
     //     }
     // }
+
+    // Receive array to void pointer
+    if fs::metadata(SOCKET_PATH).is_ok() {
+        if let Err(e) = fs::remove_file(SOCKET_PATH) {
+            eprintln!("Error removing socket file: {}", e);
+            return;
+        }
+    }
+    let socket = match UnixDatagram::bind(SOCKET_PATH) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("error binding socket: {}", e);
+            return;
+        }
+    };
+    const MAX_NUMBERS: usize = 5;
+    const BUFFER_SIZE: usize = 4 * MAX_NUMBERS;
+    loop {
+        let mut buffer = vec![0; BUFFER_SIZE];
+        let _ = socket.recv(&mut buffer);
+
+        println!("buffer{:?}", buffer);
+
+        let ptr = buffer.as_mut_ptr() as *mut c_void ;
+        let n = buffer.len() as c_int;
+        println!("n: {}", n);
+        unsafe {
+            let result = byteToInt(ptr, n);
+            for i in 0..MAX_NUMBERS {
+                println!("result: {}", *result.offset(i.try_into().unwrap()));
+            }
+        }
+        buffer.clear();
+    }
 }
