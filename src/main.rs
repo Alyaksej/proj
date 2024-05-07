@@ -3,11 +3,10 @@ use std::os::raw::{c_int, c_void};
 use std::os::unix::net::{UnixDatagram};
 use std::convert::TryInto;
 use std::{fs, vec};
-use std::os::unix::io::AsRawFd;
 
-extern {
-    fn arrayProcessing (ptr_in: *mut c_int, n: c_int) -> *mut c_int;
-}
+// extern {
+//     fn arrayProcessing (ptr_in: *mut c_int, n: c_int) -> *mut c_int;
+// }
 
 extern {
     fn byteToInt (ptr_in: *mut c_void, len: c_int) -> *mut c_int;
@@ -145,20 +144,23 @@ fn main() {
     //         return;
     //     }
     // }
-    // if fs::metadata(SOCKET_PATH).is_ok() {
-    //     if let Err(e) = fs::remove_file(SOCKET_PATH) {
-    //         eprintln!("Error removing socket file: {}", e);
-    //         return;
-    //     }
-    // }
+
+    // Remove socket before start
+    if fs::metadata(SOCKET_PATH).is_ok() {
+        if let Err(e) = fs::remove_file(SOCKET_PATH) {
+            eprintln!("Error removing socket file: {}", e);
+            return;
+        }
+    }
 
     let socket = match UnixDatagram::bind(SOCKET_PATH) {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("error binding socket: {}", e);
+            eprintln!("Error binding socket: {}", e);
             return;
         }
     };
+
     const MAX_NUMBERS: usize = 5;
     const BUFFER_SIZE: usize = 4 * MAX_NUMBERS;
     loop {
@@ -178,6 +180,4 @@ fn main() {
         }
         buffer.clear();
     }
-    let raw_fd = socket.as_raw_fd();
-    drop(socket);
 }
