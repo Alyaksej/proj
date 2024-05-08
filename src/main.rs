@@ -161,23 +161,26 @@ fn main() {
         }
     };
 
-    const MAX_NUMBERS: usize = 5;
-    const BUFFER_SIZE: usize = 4 * MAX_NUMBERS;
+    const MAX_NUMBERS: usize = 20;
+    const BUFFER_SIZE: usize = 4 * 20;
+    let mut buffer = vec![0; BUFFER_SIZE];
+    let lib_ptr = buffer.as_mut_ptr() as *mut c_void;
+    let lib_len_max = buffer.len() as c_int;
+    let mut buffer_offset: usize = 0;
     loop {
-        let mut buffer = vec![0; BUFFER_SIZE];
-        let _ = socket.recv(&mut buffer);
-
         println!("buffer{:?}", buffer);
-
-        let ptr = buffer.as_mut_ptr() as *mut c_void ;
-        let n = buffer.len() as c_int;
-        println!("n: {}", n);
+        let body_slice: &mut [u8] = &mut buffer[buffer_offset..];
+        let len_recv = socket.recv(body_slice);
+        println!("len_recv{:?}", len_recv);
+        buffer_offset += len_recv.unwrap();
+        println!("buffer_offset{:?}", buffer_offset);
+        println!("body_slice{:?}", body_slice);
         unsafe {
-            let result = byteToInt(ptr, n);
+            let result = byteToInt(lib_ptr, lib_len_max);
             for i in 0..MAX_NUMBERS {
                 println!("result: {}", *result.offset(i.try_into().unwrap()));
             }
         }
-        buffer.clear();
+        //buffer.clear();
     }
 }
