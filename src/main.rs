@@ -153,6 +153,7 @@ fn main() {
         }
     }
 
+    // Create socket
     let socket = match UnixDatagram::bind(SOCKET_PATH) {
         Ok(s) => s,
         Err(e) => {
@@ -168,7 +169,7 @@ fn main() {
     let lib_len_max = buffer.len() as c_int;
     let mut buffer_offset: usize = 0;
     loop {
-        println!("buffer{:?}", buffer);
+        println!("buffer: {:?}", buffer);
         let body_slice: &mut [u8] = &mut buffer[buffer_offset..];
         match socket.recv(body_slice) {
             Ok(len_recv) => {
@@ -187,8 +188,14 @@ fn main() {
                 println!("result: {}", *result.offset(i.try_into().unwrap()));
             }
         }
-        // if(buffer_offset == BUFFER_SIZE) {
+        // if buffer_offset == BUFFER_SIZE {
         //     buffer.clear();
+        //     buffer = vec![0; BUFFER_SIZE];
+        //     buffer_offset = 0;
         // }
+        if buffer_offset >= BUFFER_SIZE {
+            buffer.iter_mut().for_each(|x| *x = 0);
+            buffer_offset = 0;
+        }
     }
 }
