@@ -170,17 +170,25 @@ fn main() {
     loop {
         println!("buffer{:?}", buffer);
         let body_slice: &mut [u8] = &mut buffer[buffer_offset..];
-        let len_recv = socket.recv(body_slice);
-        println!("len_recv{:?}", len_recv);
-        buffer_offset += len_recv.unwrap();
-        println!("buffer_offset{:?}", buffer_offset);
-        println!("body_slice{:?}", body_slice);
+        match socket.recv(body_slice) {
+            Ok(len_recv) => {
+            println!("len_recv: {:?}", len_recv);
+            buffer_offset += len_recv;
+        },
+            Err(e) => {
+            eprintln!("Error receiving data: {:?}", e);
+        }
+        }
+        println!("buffer_offset: {:?}", buffer_offset);
+        println!("body_slice: {:?}", body_slice);
         unsafe {
             let result = byteToInt(lib_ptr, lib_len_max);
             for i in 0..MAX_NUMBERS {
                 println!("result: {}", *result.offset(i.try_into().unwrap()));
             }
         }
-        //buffer.clear();
+        // if(buffer_offset == BUFFER_SIZE) {
+        //     buffer.clear();
+        // }
     }
 }
