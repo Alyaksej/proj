@@ -38,7 +38,9 @@ fn main() {
     let lib_ptr = buffer.as_mut_ptr() as *mut c_void;
     let lib_len_max = buffer.len() as c_int;
     let mut buffer_offset: usize = 0;
+    let mut free_space = buffer.len();
     loop {
+        // Start of time calculation
         let start = Instant::now();
         println!("buffer: {:?}", buffer);
         let body_slice: &mut [u8] = &mut buffer[buffer_offset..];
@@ -46,6 +48,7 @@ fn main() {
             Ok(len_recv) => {
             println!("len_recv: {:?}", len_recv);
             buffer_offset += len_recv;
+            free_space -= len_recv;
         },
             Err(e) => {
             eprintln!("Error receiving data: {:?}", e);
@@ -59,15 +62,14 @@ fn main() {
                 println!("result: {}", *result.offset(i.try_into().unwrap()));
             }
         }
-        // if buffer_offset == BUFFER_SIZE {
-        //     buffer = vec![0; BUFFER_SIZE];
-        //     buffer_offset = 0;
-        // }
         if buffer_offset >= BUFFER_SIZE {
             buffer.iter_mut().for_each(|x| *x = 0);
             buffer_offset = 0;
+            free_space = buffer.len();
         }
+        // End of time calculation
         let duration = start.elapsed();
         println!("Time elapsed in expensive_function() is: {:?}", duration.as_micros());
+        println!("free_space: {:?}", free_space);
     }
 }
