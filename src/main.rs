@@ -32,13 +32,13 @@ fn main() {
         }
     };
 
-    const MAX_NUMBERS: usize = 20;
-    const BUFFER_SIZE: usize = 4 * 20;
+    const MAX_NUMBERS: usize = 10;
+    const BUFFER_SIZE: usize = 4 * MAX_NUMBERS;
+    const BUFFER_THRESHOLD: usize = BUFFER_SIZE - 10;
     let mut buffer = vec![0; BUFFER_SIZE];
     let lib_ptr = buffer.as_mut_ptr() as *mut c_void;
     let lib_len_max = buffer.len() as c_int;
     let mut buffer_offset: usize = 0;
-    let mut free_space = buffer.len();
     loop {
         // Start of time calculation
         let start = Instant::now();
@@ -47,11 +47,15 @@ fn main() {
         match socket.recv(body_slice) {
             Ok(len_recv) => {
             println!("len_recv: {:?}", len_recv);
+            if len_recv == body_slice.len() {
+                println!("Error receiving data: data is to long");
+                return;
+            };
             buffer_offset += len_recv;
-            free_space -= len_recv;
         },
             Err(e) => {
             eprintln!("Error receiving data: {:?}", e);
+            return;
         }
         }
         println!("buffer_offset: {:?}", buffer_offset);
@@ -62,14 +66,16 @@ fn main() {
                 println!("result: {}", *result.offset(i.try_into().unwrap()));
             }
         }
-        if buffer_offset >= BUFFER_SIZE {
+        if buffer_offset >= BUFFER_THRESHOLD {
             buffer.iter_mut().for_each(|x| *x = 0);
             buffer_offset = 0;
-            free_space = buffer.len();
         }
         // End of time calculation
         let duration = start.elapsed();
-        println!("Time elapsed in expensive_function() is: {:?}", duration.as_micros());
-        println!("free_space: {:?}", free_space);
+        println!("Time elapsed in expensive_function() is: {:?}", duration);
     }
+}
+
+fn server_bandwith () {
+
 }
