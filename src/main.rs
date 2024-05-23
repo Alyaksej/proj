@@ -40,7 +40,7 @@ fn main() {
     let lib_len_max = buffer.len() as c_int;
     let mut buffer_offset: usize = 0;
     let mut cnt_recv = 0;
-    let mut whole_recv= 0;
+    let mut whole_bytes = 0;
     // Timestamp
     let mut now = Instant::now();
 
@@ -54,7 +54,6 @@ fn main() {
             };
             buffer_offset += len_recv;
             cnt_recv += len_recv;
-            whole_recv += cnt_recv;
         },
             Err(e) => {
             eprintln!("Error receiving data: {:?}", e);
@@ -70,7 +69,7 @@ fn main() {
         }
 
         if now.elapsed().as_secs() >= 5 {
-            server_bandwidth(cnt_recv, whole_recv);
+            server_bandwidth(cnt_recv, &mut whole_bytes);
             cnt_recv = 0;
             now = Instant::now();
         }
@@ -82,7 +81,8 @@ fn main() {
     }
 }
 
-fn server_bandwidth(cnt_bytes: usize, whole_bytes: usize) {
+fn server_bandwidth(cnt_bytes: usize, whole_bytes: &mut usize) {
+    *whole_bytes += cnt_bytes;
     println!("{} bytes received in past five seconds.\n\
-              {} the whole number of bytes", cnt_bytes, whole_bytes);
+              {} the whole number of bytes", cnt_bytes, *whole_bytes);
 }
