@@ -31,9 +31,9 @@ fn main() {
         }
     };
 
-    const MAX_NUMBERS: usize = 20;
+    const MAX_NUMBERS: usize = 1000_000;
     const BUFFER_SIZE: usize = 4 * MAX_NUMBERS;
-    const BUFFER_THRESHOLD: usize = BUFFER_SIZE - 10;
+    const BUFFER_THRESHOLD: usize = BUFFER_SIZE - 250_000;
     // Buffer for receiving data
     let mut buffer = vec![0; BUFFER_SIZE];
     let lib_ptr = buffer.as_mut_ptr() as *mut c_void;
@@ -62,7 +62,7 @@ fn main() {
         }
 
         unsafe {
-            let _result = byteToInt(lib_ptr, lib_len_max);
+            //let _result = byteToInt(lib_ptr, lib_len_max);
             // for i in 0..MAX_NUMBERS {
             //     println!("result: {}", *result.offset(i.try_into().unwrap()));
             // }
@@ -83,6 +83,5 @@ fn main() {
 
 fn server_bandwidth(cnt_bytes: usize, whole_bytes: &mut usize) {
     *whole_bytes += cnt_bytes;
-    println!("{} bytes received in past five seconds.\n\
-              {} the whole number of bytes", cnt_bytes, *whole_bytes);
+    println!("{} MB/sec, {} MB total", cnt_bytes / 1000_000, *whole_bytes / 1000_000);
 }
